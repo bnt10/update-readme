@@ -1,0 +1,7 @@
+{
+  "baseUrl": "./src",
+  "exclude": ["scripts"],
+  "order": ["projects", "troubleshooting", "dev_notes"],
+  "readmePath": "./README.md",
+  "templatePath": "./templateReadme.md"
+}
