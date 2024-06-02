@@ -36,7 +36,6 @@ function setupHooks() {
 
 rl.question('The .git/hooks directory is required for setup. Create it if not exist? [y/n]: ', (answer) => {
   if (answer.toLowerCase() === 'y') {
-    console.log('Start!!!!!!!!!')
     setupHooks();
   } else {
     console.log('Setup canceled by user.');

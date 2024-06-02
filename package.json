@@ -1,6 +1,6 @@
 {
   "name": "update-readme-table-of-contents",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "This project automatically updates a specified README file with changes from markdown files on commit, generating a table of contents for the modified markdown files.",
   "type": "module",
   "main": "dist/index.js",
@@ -8,7 +8,7 @@
   "scripts": {
     "build": "node build.js",
     "test": "node --es-module-specifier-resolution=node dist/index.js --config ./readmeConfig.json",
-    "update-readme": "node --no-warnings=ExperimentalWarning --loader ts-node/esm scripts/updateReadme.ts",
+    "update-readme": "node --no-warnings=ExperimentalWarning --loader ts-node/esm scripts/cli-update-readme.ts",
     "setup-hooks": "sh scripts/setup-hooks.sh"
   },
   "repository": {

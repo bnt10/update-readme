@@ -8,8 +8,6 @@ const __dirname = path.dirname(__filename);
 
 const entryDir = path.join(__dirname, 'scripts');
 const outDir = path.join(__dirname, 'dist');
-const hooksDir = path.join(__dirname, 'hooks');
-const distHooksDir = path.join(outDir, 'hooks');
 
 async function getAllFiles(dir, ext, files = []) {
   const dirents = await fs.readdir(dir, { withFileTypes: true });
@@ -56,9 +54,8 @@ async function copyHooks() {
       }
       console.log(`stdout: ${stdout}`);
 
-      // hooks 디렉토리 복사
       await copyHooks();
-      console.log('hooks directory copied');
+     
     });
   } catch (err) {
     console.error(`Error: ${err.message}`);

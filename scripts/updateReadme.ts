@@ -78,7 +78,6 @@ export async function generateMarkdownEntry(
 export async function updateReadme(configPath: string) {
   const config = await loadConfig(configPath);
   const { baseUrl, exclude, order, readmePath: configReadmePath, templatePath: configTemplatePath } = config;
-
   const rootDir = process.cwd();
   const srcDir = path.join(rootDir, baseUrl);
 

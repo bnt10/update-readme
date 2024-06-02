@@ -2,6 +2,8 @@
 
 echo "Running pre-commit hook..."
 
+repo_root=$(git rev-parse --show-toplevel)
+
 md_files=$(git diff --cached --name-only | grep '\.md$')
 
 if [ -z "$md_files" ]; then
@@ -11,13 +13,12 @@ else
     echo "$md_files"
     echo "Running update-readme script..."
 
-    yarn run update-readme
+    npx update-readme
 
     if [ $? -eq 0 ]; then
         echo "update-readme script executed successfully"
-
-        readme_path=$(node -e "console.log(require('./readmeConfig.json').readmePath || './README.md')")
-
+        readme_path=$(node -p "const config = require('${repo_root}/readmeConfig.json'); `${repo_root}/${config.readmePath || 'README.md'}`")
+        echo "$repo_root Updating README.md at $readme_path"
         git add "$readme_path"
 
         if [ $? -eq 0 ]; then
