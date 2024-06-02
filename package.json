@@ -1,6 +1,6 @@
 {
   "name": "update-readme-table-of-contents",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "This project automatically updates a specified README file with changes from markdown files on commit, generating a table of contents for the modified markdown files.",
   "type": "module",
   "main": "dist/index.js",
