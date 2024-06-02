@@ -17,8 +17,8 @@ else
 
     if [ $? -eq 0 ]; then
         echo "update-readme script executed successfully"
-        readme_path=$(node -p "const config = require('${repo_root}/readmeConfig.json'); `${repo_root}/${config.readmePath || 'README.md'}`")
-        echo "$repo_root Updating README.md at $readme_path"
+        readme_path=$(node -p "const path = require('path'); const repoRoot = process.argv[1]; const config = require(path.join(repoRoot, 'readmeConfig.json')); path.join(repoRoot, config.readmePath || 'README.md');" "${repo_root}")
+        echo "Updating README.md at $readme_path"
         git add "$readme_path"
 
         if [ $? -eq 0 ]; then
