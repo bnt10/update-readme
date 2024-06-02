@@ -1,54 +1,66 @@
-# Table of Contents
-## Usage
+## 프로젝트 설정 및 스크립트 설명
 
 ## example
   - [description](./src/example/description.md)
 
 
-### 프로젝트 설정 및 스크립트 설명
-
-## 설치환경
+### 설치환경
 
 - **Node.js 버전: 20.13.1**
 
-## 폴더 구조
+### 폴더 구조
 
 ```sh
 scripts/
 ├── hooks/
 │   ├── pre-commit
 │   └── setup-hooks.sh
+├── cli-setup-hooks.ts
+├── cli-update-readme.ts
+├── index.ts
 ├── updateReadme.test.ts
 └── updateReadme.ts
+src/
+├── example/
+│   └── description.md
+README.md
+readmeConfig.json
+templateReadme.md
 ```
 
 - `scripts/`: 스크립트 파일들을 저장하는 디렉토리입니다.
   - `hooks/`: Git 훅 스크립트 파일들을 저장하는 디렉토리입니다.
     - `pre-commit`: 커밋 전에 실행되는 Git 훅 스크립트입니다.
     - `setup-hooks.sh`: Git 훅을 설정하는 스크립트입니다.
+  - `cli-setup-hooks.ts`: Git 훅 설정을 위한 CLI 스크립트입니다.
+  - `cli-update-readme.ts`: `README.md` 업데이트를 위한 CLI 스크립트입니다.
+  - `index.ts`: 엔트리 포인트 스크립트입니다.
   - `updateReadme.test.ts`: `updateReadme.ts` 스크립트의 테스트 파일입니다.
   - `updateReadme.ts`: `README.md` 파일을 업데이트하는 TypeScript 스크립트입니다.
 
-## 설치 및 초기 설정
+### 설치 및 초기 설정
 
-### `package.json` 설치 스크립트
+#### `package.json` 설치 스크립트
 
 프로젝트의 `package.json` 파일에는 다음과 같은 스크립트가 포함되어 있습니다:
 
 ```json
 {
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "update-readme": "node --no-warnings=ExperimentalWarning --loader ts-node/esm scripts/updateReadme.ts",
+    "build": "node build.js",
+    "test": "node --es-module-specifier-resolution=node dist/index.js --config ./readmeConfig.json",
+    "update-readme": "node --no-warnings=ExperimentalWarning --loader ts-node/esm scripts/cli-update-readme.ts",
     "setup-hooks": "sh scripts/setup-hooks.sh"
   }
 }
 ```
 
+- **build**: TypeScript 파일을 컴파일합니다.
+- **test**: 컴파일된 파일을 테스트합니다.
 - **update-readme**: `README.md` 파일을 업데이트합니다.
 - **setup-hooks**: `setup-hooks.sh` 스크립트를 실행하여 Git 훅을 설정합니다.
 
-### 설치 방법
+#### 설치 방법
 
 프로젝트를 처음 설정할 때, 다음 명령을 실행하여 필요한 패키지를 설치합니다:
 
@@ -62,11 +74,11 @@ yarn install
 yarn run setup-hooks
 ```
 
-### 추가 설정 파일
+#### 추가 설정 파일
 
 프로젝트의 루트 경로에 다음 파일들을 추가해야 합니다:
 
-#### `templateReadme.md`
+##### `templateReadme.md`
 
 이 파일은 `README.md` 파일의 템플릿으로 사용됩니다. `{updateReadme}` 플레이스홀더는 `updateReadme.ts` 스크립트를 통해 동적 콘텐츠로 대체됩니다.
 
@@ -83,7 +95,7 @@ Some initial project information.
 Some footer information.
 ```
 
-#### `readmeConfig.json`
+##### `readmeConfig.json`
 
 이 파일은 `updateReadme.ts` 스크립트의 설정을 정의합니다. `baseUrl`은 README 파일 생성을 시작할 기본 경로를 지정하고, `exclude`는 제외할 폴더들을, `order`는 콘텐츠의 폴더 순서를 정의합니다. 또한 `readmePath`와 `templatePath`를 지정할 수 있습니다.
 
@@ -97,9 +109,9 @@ Some footer information.
 }
 ```
 
-## 각 파일 설명
+### 각 파일 설명
 
-### `pre-commit`
+#### `pre-commit`
 
 이 스크립트는 Git의 `pre-commit` 훅으로, 커밋 전에 실행됩니다. 변경된 파일 중 `.md` 확장자를 가진 파일이 있는지 검사하여, 있으면 `updateReadme` 스크립트를 실행하여 `README.md` 파일을 업데이트합니다.
 
@@ -108,7 +120,8 @@ Some footer information.
 
 echo "Running pre-commit hook..."
 
-# 변경된 파일 중 .md 확장자를 가진 파일이 있는지 검사
+repo_root=$(git rev-parse --show-toplevel)
+
 md_files=$(git diff --cached --name-only | grep '\.md$')
 
 if [ -z "$md_files" ]; then
@@ -118,16 +131,12 @@ else
     echo "$md_files"
     echo "Running update-readme script..."
 
-    # .md 파일이 있을 경우 README.md 업데이트 스크립트 실행
-    yarn run update-readme
+    yarn npx update-readme
 
     if [ $? -eq 0 ]; then
         echo "update-readme script executed successfully"
-
-        # readmeConfig.json 파일에서 readmePath 읽기
-        readme_path=$(node -e "console.log(require('./readmeConfig.json').readmePath || './README.md')")
-
-        # README.md 파일을 스테이징
+        readme_path=$(node -e "const config = require('${repo_root}/readmeConfig.json'); console.log(`${repo_root}/${config.readmePath || 'README.md'}`)")
+        echo "Updating README.md at $readme_path"
         git add "$readme_path"
 
         if [ $? -eq 0 ]; then
@@ -143,7 +152,7 @@ else
 fi
 ```
 
-### `setup-hooks.sh`
+#### `setup-hooks.sh`
 
 이 스크립트는 Git 훅을 설정하는 스크립트로, `pre-commit` 훅을 `.git/hooks` 디렉토리에 복사하고 운영 체제에 따라 적절한 실행 권한을 설정합니다.
 
@@ -154,7 +163,7 @@ fi
 mkdir -p .git/hooks
 
 # pre-commit 훅을 복사
-cp src/scripts/hooks/pre-commit .git/hooks/pre-commit
+cp scripts/hooks/pre-commit .git/hooks/pre-commit
 
 # 운영 체제에 따라 권한 설정
 OS="$(uname -s)"
@@ -172,7 +181,7 @@ case "${OS}" in
 esac
 ```
 
-### `updateReadme.test.ts`
+#### `updateReadme.test.ts`
 
 이 파일은 `updateReadme.ts` 스크립트의 테스트를 위한 파일입니다.
 
@@ -258,7 +267,7 @@ describe('updateReadme functions', () => {
 });
 ```
 
-### `updateReadme.ts`
+#### `updateReadme.ts`
 
 이 파일은 `README.md` 디렉토리 구조를 탐색하고, 특정 조건에 따라 `README.md` 파일을 갱신합니다.
 
@@ -274,7 +283,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // CLI 옵션 설정
-const argv = yargs(hideBin(process.argv))
+const argv = yargs(h
+
+ideBin(process.argv))
   .option('config', {
     alias: 'c',
     type: 'string',
@@ -294,8 +305,6 @@ async function loadConfig(configPath: string) {
 export async function generateMarkdownEntry(
   dirPath: string,
   basePath: string = '',
-
-
   srcBasePath: string = '',
   level: number = 1,
   exclude: string[] = [],
@@ -390,7 +399,99 @@ export async function updateReadme(configPath: string) {
 updateReadme(configPath).catch(console.error);
 ```
 
-이 문서에서는 프로젝트 설정 및 각 스크립트 파일에 대한 설명과 함께, `--config` 옵션을 사용하여 설정 파일 경로를 동적으로 처리하는 방법을 설명합니다. 이러한 구조는 프로젝트의 유연성을 높이며, 다양한 사용 사례에 맞게 동작합니다.
+## CLI 스크립트
 
+### `cli-update-readme.ts`
 
-## Footer
+이 파일은 `README.md` 업데이트를 위한 CLI 스크립트입니다.
+
+```typescript
+#!/usr/bin/env node
+
+import { updateReadme } from './updateReadme.js';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+
+// CLI 옵션 설정
+const argv = yargs(hideBin(process.argv))
+  .option('config', {
+    alias: 'c',
+    type: 'string',
+    description: 'Path to the config file',
+  })
+  .help()
+  .argv as { config?: string };
+
+// 설정 파일 경로 결정
+const configPath = argv.config || './readmeConfig.json';
+
+// updateReadme 함수 호출
+updateReadme(configPath).catch(console.error);
+```
+
+### `cli-setup-hooks.ts`
+
+이 파일은 Git 훅 설정을 위한 CLI 스크립트입니다.
+
+```typescript
+#!/usr/bin/env node
+
+import { execSync } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import readline from 'readline';
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const hooksDir = path.join(process.cwd(), '.git/hooks');
+const preCommitHookPath = path.join(hooksDir, 'pre-commit');
+const sourceHookPath = path.resolve(__dirname, '../hooks/pre-commit');
+
+function setupHooks() {
+  let hookContent = '';
+
+  // 기존 훅이 있는 경우, 그 내용을 가져오고 백업
+  if (fs.existsSync(preCommitHookPath)) {
+    hookContent = fs.readFileSync(preCommitHookPath, 'utf8');
+    fs.writeFileSync(`${preCommitHookPath}.bak`, hookContent);
+    console.log('Existing pre-commit hook backed up.');
+  }
+
+  // 새 훅 내용을 추가
+  const customHookContent = fs.readFileSync(sourceHookPath, 'utf8');
+  hookContent += `\n\n${customHookContent}`;
+
+  // 변경된 훅 저장
+  fs.writeFileSync(preCommitHookPath, hookContent);
+  execSync(`chmod +x "${preCommitHookPath}"`);
+
+  console.log('Custom pre-commit hook added.');
+}
+
+rl.question('The .git/hooks directory is required for setup. Create it if not exist? [y/n]: ', (answer) => {
+  if (answer.toLowerCase() === 'y') {
+    setupHooks();
+  } else {
+    console.log('Setup canceled by user.');
+  }
+  rl.close();
+});
+```
+
+### bin 설정
+
+`package.json`에 다음과 같이 `bin` 설정을 추가합니다.
+
+```json
+"bin": {
+  "update-readme": "dist/cli-update-readme.js",
+  "setup-hooks": "dist/cli-setup-hooks.js"
+}
+```
