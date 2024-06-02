@@ -1,18 +1,21 @@
 {
-  "name": "study-dev-notes",
-  "version": "1.0.0",
-  "description": "dev-notes & troubleshooting",
+  "name": "update-readme-table-of-contents",
+  "version": "1.0.3",
+  "description": "This project automatically updates a specified README file with changes from markdown files on commit, generating a table of contents for the modified markdown files.",
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "build": "node build.js",
+    "test": "node --es-module-specifier-resolution=node dist/index.js --config ./readmeConfig.json",
     "update-readme": "node --no-warnings=ExperimentalWarning --loader ts-node/esm scripts/updateReadme.ts",
-    "setup-hooks": "sh src/scripts/setup-hooks.sh"
+    "setup-hooks": "sh scripts/setup-hooks.sh"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bnt10/study"
+    "url": "https://github.com/bnt10/update-readme"
   },
-  "keywords": ["markdown","README"],
+  "keywords": ["markdown", "README"],
   "author": "Jin Hyeong",
   "license": "MIT",
   "devDependencies": {
@@ -29,10 +32,24 @@
     "ts-jest": "^29.1.2",
     "ts-jest-mock-import-meta": "^1.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "@swc/core": "^1.2.127",
+    "@swc/cli": "^0.1.51"
   },
   "dependencies": {
-    "express": "^4.17.1",
     "yargs": "^17.7.2"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "templateReadme.md",
+    "readmeConfig.json"
+  ],
+  "engines": {
+    "node": ">=20.13.1"
+  },
+  "bin": {
+    "update-readme": "dist/cli-update-readme.js",
+    "setup-hooks": "dist/cli-setup-hooks.js"
   }
 }

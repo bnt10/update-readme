@@ -1,25 +1,10 @@
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from 'path';
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 
 // ES 모듈에서 __dirname 및 __filename 설정
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// CLI 옵션 설정
-const argv = yargs(hideBin(process.argv))
-  .option('config', {
-    alias: 'c',
-    type: 'string',
-    description: 'Path to the config file',
-  })
-  .help()
-  .argv as { config?: string };
-
-// 설정 파일 경로 결정
-const configPath = argv.config || path.resolve(process.cwd(), 'readmeConfig.json');
 
 async function loadConfig(configPath: string) {
   const configContent = await fs.readFile(configPath, 'utf-8');
@@ -93,10 +78,10 @@ export async function generateMarkdownEntry(
 export async function updateReadme(configPath: string) {
   const config = await loadConfig(configPath);
   const { baseUrl, exclude, order, readmePath: configReadmePath, templatePath: configTemplatePath } = config;
-  
+
   const rootDir = process.cwd();
   const srcDir = path.join(rootDir, baseUrl);
-  
+
   const readmePath = configReadmePath ? path.resolve(rootDir, configReadmePath) : path.join(rootDir, 'README.md');
   const templatePath = configTemplatePath ? path.resolve(rootDir, configTemplatePath) : path.join(rootDir, 'templateReadme.md');
 
@@ -118,6 +103,3 @@ export async function updateReadme(configPath: string) {
 
   await fs.writeFile(readmePath, readmeContent);
 }
-
-// 설정 파일 경로를 인자로 전달하여 updateReadme 호출
-updateReadme(configPath).catch(console.error);
